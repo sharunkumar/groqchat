@@ -3,3 +3,4 @@
 venv/*
 package/groqchat.egg-info/*
 build/
+.aider.chat.history.md

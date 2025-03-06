@@ -113,6 +113,13 @@ class GroqChatbot:
             print3(f"LLM Temperature: {temperature}")
 
     def setLlmModel_groq(self):
+        # Check if GROQ_MODEL environment variable exists
+        env_model = os.getenv("GROQ_MODEL")
+        if env_model:
+            config.groqApi_chat_model = env_model
+            saveConfig()
+            print2("Model taken from environment variable!")
+            return
         model = TerminalModeDialogs(self).getValidOptions(
             options=(
                 "distil-whisper-large-v3-en",

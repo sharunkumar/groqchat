@@ -1,2 +1,2 @@
 tool:
-	uv tool install ./package/ -n --force
+	uv tool install ./package/ --no-cache --force

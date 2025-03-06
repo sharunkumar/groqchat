@@ -60,7 +60,7 @@ class GroqChatbot:
 
     def resetMessages(self):
         return [
-            {"role": "system", "content": config.systemMessage_groq},
+            {"role": "system", "content": config.system_groq},
         ]
 
     def changeGroqApi(self):
@@ -121,19 +121,7 @@ class GroqChatbot:
             print2("Model taken from environment variable!")
             return
         model = TerminalModeDialogs(self).getValidOptions(
-            options=(
-                "distil-whisper-large-v3-en",
-                "gemma-7b-it",
-                "gemma2-9b-it",
-                "llama-3.1-8b-instant",
-                "llama-3.3-70b-versatile",
-                "llama-guard-3-8b",
-                "llama3-70b-8192",
-                "llama3-8b-8192",
-                "mixtral-8x7b-32768",
-                "whisper-large-v3-turbo",
-                "whisper-large-v3",
-            ),
+            options=config.models,
             title="Groq Model",
             default=config.groqApi_chat_model,
             text="Select a model:",
@@ -188,10 +176,10 @@ class GroqChatbot:
         prompt = SinglePrompt.run(
             style=self.promptStyle,
             promptSession=system_message_session,
-            default=config.systemMessage_groq,
+            default=config.system_groq,
         )
         if prompt and not prompt == config.exit_entry:
-            config.systemMessage_groq = prompt
+            config.system_groq = prompt
             saveConfig()
             print2("System message changed!")
             clear()
@@ -207,7 +195,7 @@ class GroqChatbot:
 
         print2(f"\n{self.name} loaded!")
         print2("```system message")
-        print1(config.systemMessage_groq)
+        print1(config.system_groq)
         print2("```")
         # if hasattr(config, "currentMessages"):
         #    bottom_toolbar = f""" {str(config.hotkey_exit).replace("'", "")} {config.exit_entry}"""
@@ -228,7 +216,7 @@ class GroqChatbot:
                             ".new",
                             ".api",
                             ".model",
-                            ".systemmessage",
+                            ".system",
                             ".temperature",
                             ".maxtokens",
                             ".togglewordwrap",
@@ -291,10 +279,7 @@ class GroqChatbot:
                 and prompt.lower() == ".maxtokens"
             ):
                 self.setMaxTokens()
-            elif (
-                not hasattr(config, "currentMessages")
-                and prompt.lower() == ".systemmessage"
-            ):
+            elif not hasattr(config, "currentMessages") and prompt.lower() == ".system":
                 self.setSystemMessage()
             elif not hasattr(config, "currentMessages") and prompt.lower() == ".api":
                 self.changeGroqApi()

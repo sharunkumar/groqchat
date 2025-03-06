@@ -71,7 +71,7 @@ Enter a dot '.' to display available special entries:
 
 '.model' - change model
 
-'.systemmessage' - change system message
+'.system' - change system message
 
 '.temperature' - change temperature
 
@@ -125,7 +125,7 @@ For example, to set temperature to 0.8 and maximum output tokens to 1024, run:
 
 # Install Multiple Copies
 
-You may want to install multiple copies to customise them with different system messages or other settings.  
+You may want to install multiple copies to customise them with different system messages or other settings.
 
 An easy way to achieve it is to use alias, e.g.:
 

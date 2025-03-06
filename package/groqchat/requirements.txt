@@ -5,4 +5,3 @@ sounddevice==0.4.7
 SpeechRecognition
 psutil
 requests
-numpy==1.26.4

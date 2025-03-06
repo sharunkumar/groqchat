@@ -4,7 +4,8 @@ from groqchat.utils.streaming_word_wrapper import StreamingWordWrapper
 from groqchat.utils.terminal_mode_dialogs import TerminalModeDialogs
 from groqchat.utils.single_prompt import SinglePrompt
 from groqchat.utils.promptValidator import FloatValidator, NumberValidator
-#from groqchat.utils.tool_plugins import Plugins
+
+# from groqchat.utils.tool_plugins import Plugins
 
 from prompt_toolkit.completion import WordCompleter, FuzzyCompleter
 from prompt_toolkit.styles import Style
@@ -22,18 +23,29 @@ class GroqChatbot:
     It is created for use with 3rd-party applications.
     """
 
-    def __init__(self, name="Groq Chatbot", temperature=config.llmTemperature, max_output_tokens=config.groqApi_max_tokens):
-        self.name, self.temperature, self.max_output_tokens = name, temperature, max_output_tokens
+    def __init__(
+        self,
+        name="Groq Chatbot",
+        temperature=config.llmTemperature,
+        max_output_tokens=config.groqApi_max_tokens,
+    ):
+        self.name, self.temperature, self.max_output_tokens = (
+            name,
+            temperature,
+            max_output_tokens,
+        )
         self.messages = self.resetMessages()
-        #if hasattr(config, "currentMessages") and config.currentMessages:
+        # if hasattr(config, "currentMessages") and config.currentMessages:
         #    self.messages += config.currentMessages[:-1]
         self.defaultPrompt = ""
-        self.promptStyle = Style.from_dict({
-            # User input (default text).
-            "": config.terminalCommandEntryColor2,
-            # Prompt.
-            "indicator": config.terminalPromptIndicatorColor2,
-        })
+        self.promptStyle = Style.from_dict(
+            {
+                # User input (default text).
+                "": config.terminalCommandEntryColor2,
+                # Prompt.
+                "indicator": config.terminalPromptIndicatorColor2,
+            }
+        )
         if not self.temperature == config.llmTemperature:
             config.llmTemperature = self.temperature
             saveConfig()
@@ -47,15 +59,31 @@ class GroqChatbot:
         checkPyaudio()
 
     def resetMessages(self):
-        return [{"role": "system", "content": config.systemMessage_groq},]
+        return [
+            {"role": "system", "content": config.systemMessage_groq},
+        ]
 
     def changeGroqApi(self):
+        # Check if GROQ_API_KEY environment variable exists
+        env_apikey = os.getenv("GROQ_API_KEY")
+        if env_apikey:
+            config.groqApi_key = env_apikey
+            saveConfig()
+            print2("API Key taken from environment variable!")
+            return
         print3("# Groq Cloud API Key: allows access to Groq Cloud hosted LLMs")
-        print1("To set up Groq Cloud API Key, read:\nhttps://github.com/eliranwong/freegenius/wiki/Set-up-a-Groq-Cloud-API-Key\n")
+        print1(
+            "To set up Groq Cloud API Key, read:\nhttps://github.com/eliranwong/freegenius/wiki/Set-up-a-Groq-Cloud-API-Key\n"
+        )
         print1("Enter a single or a list of multiple Groq Cloud API Key(s):")
         print()
-        apikey = SinglePrompt.run(style=self.promptStyle, default=str(config.groqApi_key), is_password=True)
-        if apikey and not apikey.strip().lower() in (config.cancel_entry, config.exit_entry):
+        apikey = SinglePrompt.run(
+            style=self.promptStyle, default=str(config.groqApi_key), is_password=True
+        )
+        if apikey and not apikey.strip().lower() in (
+            config.cancel_entry,
+            config.exit_entry,
+        ):
             try:
                 if isinstance(eval(apikey), list):
                     config.groqApi_key = eval(apikey)
@@ -66,8 +94,14 @@ class GroqChatbot:
 
     def setTemperature(self):
         print1("Enter a value between 0.0 and 2.0:")
-        print1("(Lower values for temperature result in more consistent outputs, while higher values generate more diverse and creative results. Select a temperature value based on the desired trade-off between coherence and creativity for your specific application.)")
-        temperature = SinglePrompt.run(style=self.promptStyle, validator=FloatValidator(), default=str(config.llmTemperature))
+        print1(
+            "(Lower values for temperature result in more consistent outputs, while higher values generate more diverse and creative results. Select a temperature value based on the desired trade-off between coherence and creativity for your specific application.)"
+        )
+        temperature = SinglePrompt.run(
+            style=self.promptStyle,
+            validator=FloatValidator(),
+            default=str(config.llmTemperature),
+        )
         if temperature and not temperature.strip().lower() == config.exit_entry:
             temperature = float(temperature)
             if temperature < 0:
@@ -112,8 +146,14 @@ class GroqChatbot:
             default = config.ollamaMainModel_num_predict
         elif config.llmInterface == "groq":
             default = config.groqApi_max_tokens
-        maxtokens = SinglePrompt.run(style=self.promptStyle, validator=NumberValidator(), default=str(default))
-        if maxtokens and not maxtokens.strip().lower() == config.exit_entry and int(maxtokens) > 0:
+        maxtokens = SinglePrompt.run(
+            style=self.promptStyle, validator=NumberValidator(), default=str(default)
+        )
+        if (
+            maxtokens
+            and not maxtokens.strip().lower() == config.exit_entry
+            and int(maxtokens) > 0
+        ):
             maxtokens = int(maxtokens)
             if config.llmInterface == "gemini":
                 config.geminipro_max_output_tokens = maxtokens
@@ -128,15 +168,21 @@ class GroqChatbot:
 
     def setSystemMessage(self):
         # completer
-        #Plugins.runPlugins()
-        #completer = FuzzyCompleter(WordCompleter(list(config.predefinedContexts.values()), ignore_case=True))
+        # Plugins.runPlugins()
+        # completer = FuzzyCompleter(WordCompleter(list(config.predefinedContexts.values()), ignore_case=True))
         # history
         historyFolder = os.path.join(config.localStorage, "gchat")
         system_message_history = os.path.join(historyFolder, "system_message")
-        system_message_session = PromptSession(history=FileHistory(system_message_history))
+        system_message_session = PromptSession(
+            history=FileHistory(system_message_history)
+        )
         # prompt
         print2("Change system message below:")
-        prompt = SinglePrompt.run(style=self.promptStyle, promptSession=system_message_session, default=config.systemMessage_groq)
+        prompt = SinglePrompt.run(
+            style=self.promptStyle,
+            promptSession=system_message_session,
+            default=config.systemMessage_groq,
+        )
         if prompt and not prompt == config.exit_entry:
             config.systemMessage_groq = prompt
             saveConfig()
@@ -156,40 +202,92 @@ class GroqChatbot:
         print2("```system message")
         print1(config.systemMessage_groq)
         print2("```")
-        #if hasattr(config, "currentMessages"):
+        # if hasattr(config, "currentMessages"):
         #    bottom_toolbar = f""" {str(config.hotkey_exit).replace("'", "")} {config.exit_entry}"""
-        #else:
+        # else:
         #    bottom_toolbar = f""" {str(config.hotkey_exit).replace("'", "")} {config.exit_entry} {str(config.hotkey_new).replace("'", "")} .new"""
         #    print("(To start a new chart, enter '.new')")
-        bottom_toolbar = f""" {str(config.hotkey_exit).replace("'", "")} {config.exit_entry}"""
+        bottom_toolbar = (
+            f""" {str(config.hotkey_exit).replace("'", "")} {config.exit_entry}"""
+        )
         print(f"(To exit, enter '{config.exit_entry}')\n")
         while True:
-            completer = None if hasattr(config, "currentMessages") else FuzzyCompleter(WordCompleter([".new", ".api", ".model", ".systemmessage", ".temperature", ".maxtokens", ".togglewordwrap", ".togglevoiceoutput", config.exit_entry], ignore_case=True))
+            completer = (
+                None
+                if hasattr(config, "currentMessages")
+                else FuzzyCompleter(
+                    WordCompleter(
+                        [
+                            ".new",
+                            ".api",
+                            ".model",
+                            ".systemmessage",
+                            ".temperature",
+                            ".maxtokens",
+                            ".togglewordwrap",
+                            ".togglevoiceoutput",
+                            config.exit_entry,
+                        ],
+                        ignore_case=True,
+                    )
+                )
+            )
             if not prompt:
-                prompt = SinglePrompt.run(style=self.promptStyle, promptSession=chat_session, bottom_toolbar=bottom_toolbar, completer=completer)
+                prompt = SinglePrompt.run(
+                    style=self.promptStyle,
+                    promptSession=chat_session,
+                    bottom_toolbar=bottom_toolbar,
+                    completer=completer,
+                )
                 userMessage = {"role": "user", "content": prompt}
                 self.messages.append(userMessage)
-                if prompt and not prompt in (".new", config.exit_entry) and hasattr(config, "currentMessages"):
+                if (
+                    prompt
+                    and not prompt in (".new", config.exit_entry)
+                    and hasattr(config, "currentMessages")
+                ):
                     config.currentMessages.append(userMessage)
             else:
-                prompt = SinglePrompt.run(style=self.promptStyle, promptSession=chat_session, bottom_toolbar=bottom_toolbar, default=prompt, accept_default=True, completer=completer)
+                prompt = SinglePrompt.run(
+                    style=self.promptStyle,
+                    promptSession=chat_session,
+                    bottom_toolbar=bottom_toolbar,
+                    default=prompt,
+                    accept_default=True,
+                    completer=completer,
+                )
                 userMessage = {"role": "user", "content": prompt}
                 self.messages.append(userMessage)
             if prompt == config.exit_entry:
                 break
-            elif not hasattr(config, "currentMessages") and prompt.lower() == ".togglevoiceoutput":
+            elif (
+                not hasattr(config, "currentMessages")
+                and prompt.lower() == ".togglevoiceoutput"
+            ):
                 config.ttsOutput = not config.ttsOutput
                 saveConfig()
                 print3(f"TTS Output: {config.ttsOutput}")
-            elif not hasattr(config, "currentMessages") and prompt.lower() == ".togglewordwrap":
+            elif (
+                not hasattr(config, "currentMessages")
+                and prompt.lower() == ".togglewordwrap"
+            ):
                 config.wrapWords = not config.wrapWords
                 saveConfig()
                 print3(f"Word Wrap: {config.wrapWords}")
-            elif not hasattr(config, "currentMessages") and prompt.lower() == ".temperature":
+            elif (
+                not hasattr(config, "currentMessages")
+                and prompt.lower() == ".temperature"
+            ):
                 self.setTemperature()
-            elif not hasattr(config, "currentMessages") and prompt.lower() == ".maxtokens":
+            elif (
+                not hasattr(config, "currentMessages")
+                and prompt.lower() == ".maxtokens"
+            ):
                 self.setMaxTokens()
-            elif not hasattr(config, "currentMessages") and prompt.lower() == ".systemmessage":
+            elif (
+                not hasattr(config, "currentMessages")
+                and prompt.lower() == ".systemmessage"
+            ):
                 self.setSystemMessage()
             elif not hasattr(config, "currentMessages") and prompt.lower() == ".api":
                 self.changeGroqApi()
@@ -216,7 +314,10 @@ class GroqChatbot:
 
                     # Create a new thread for the streaming task
                     streaming_event = threading.Event()
-                    self.streaming_thread = threading.Thread(target=streamingWordWrapper.streamOutputs, args=(streaming_event, completion, True))
+                    self.streaming_thread = threading.Thread(
+                        target=streamingWordWrapper.streamOutputs,
+                        args=(streaming_event, completion, True),
+                    )
                     # Start the streaming thread
                     self.streaming_thread.start()
 
@@ -227,9 +328,11 @@ class GroqChatbot:
                     self.streaming_thread.join()
 
                     # add response to message chain
-                    self.messages.append({"role": "assistant", "content": config.new_chat_response})
+                    self.messages.append(
+                        {"role": "assistant", "content": config.new_chat_response}
+                    )
                 except:
-                    #self.streaming_thread.join()
+                    # self.streaming_thread.join()
                     print2(traceback.format_exc())
 
             prompt = ""
@@ -238,13 +341,26 @@ class GroqChatbot:
         if hasattr(config, "currentMessages"):
             print2(f"Return back to {config.freeGeniusAIName} prompt ...")
 
+
 def main():
     # Create the parser
     parser = argparse.ArgumentParser(description="gchat cli options")
     # Add arguments
     parser.add_argument("default", nargs="?", default=None, help="default entry")
-    parser.add_argument('-o', '--outputtokens', action='store', dest='outputtokens', help=f"specify maximum output tokens with -o flag; default: {config.groqApi_max_tokens}")
-    parser.add_argument('-t', '--temperature', action='store', dest='temperature', help=f"specify temperature with -t flag: default: {config.llmTemperature}")
+    parser.add_argument(
+        "-o",
+        "--outputtokens",
+        action="store",
+        dest="outputtokens",
+        help=f"specify maximum output tokens with -o flag; default: {config.groqApi_max_tokens}",
+    )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        action="store",
+        dest="temperature",
+        help=f"specify temperature with -t flag: default: {config.llmTemperature}",
+    )
     # Parse arguments
     args = parser.parse_args()
     # Get options
@@ -265,10 +381,11 @@ def main():
         temperature = config.llmTemperature
     GroqChatbot(
         temperature=temperature,
-        max_output_tokens = max_output_tokens,
+        max_output_tokens=max_output_tokens,
     ).run(
         prompt=prompt,
     )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
